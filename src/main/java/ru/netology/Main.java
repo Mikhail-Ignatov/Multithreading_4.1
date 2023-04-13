@@ -8,18 +8,20 @@ public class Main {
     public static final BlockingQueue<String> textsQueueA = new ArrayBlockingQueue<>(100);
     public static final BlockingQueue<String> textsQueueB = new ArrayBlockingQueue<>(100);
     public static final BlockingQueue<String> textsQueueC = new ArrayBlockingQueue<>(100);
+    public static final int textLength = 100_000;
+    public static final int wordsAmount = 10_000;
 
     public static void main(String[] args) {
 
-        String[] texts = new String[10_000];
+        String[] words = new String[wordsAmount];
 
         Thread queue = new Thread(() -> {
-            for (int i = 0; i < texts.length; i++) {
-                texts[i] = generateText("abc", 100_000);
+            for (int i = 0; i < words.length; i++) {
+                words[i] = generateText("abc", textLength);
                 try {
-                    textsQueueA.put(texts[i]);
-                    textsQueueB.put(texts[i]);
-                    textsQueueC.put(texts[i]);
+                    textsQueueA.put(words[i]);
+                    textsQueueB.put(words[i]);
+                    textsQueueC.put(words[i]);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -27,94 +29,13 @@ public class Main {
         });
         queue.start();
 
-        Thread queueA = new Thread(() -> {
-            int counterA = 0;
-            int counterMaxA = 0;
-            // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-            // String textMaxA = null;
-
-            for (int i = 0; i < texts.length; i++) {
-                try {
-                    String textA = textsQueueA.take();
-                    for (int j = 0; j < textA.length(); j++) {
-                        if (textA.charAt(j) == 'a') {
-                            counterA++;
-                        }
-                    }
-                    if (counterA > counterMaxA) {
-                        // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-                        // textMaxA = textA;
-                        counterMaxA = counterA;
-                    }
-                    counterA = 0;
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            System.out.println("Наибольшее количество букв а: " + counterMaxA);
-            // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-            // System.out.println("Слово: " + textMaxB);
-        });
+        Thread queueA = new Thread(() -> calc('a', textsQueueA));
         queueA.start();
 
-        Thread queueB = new Thread(() -> {
-            int counterB = 0;
-            int counterMaxB = 0;
-            // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-            // String textMaxB = null;
-
-            for (int i = 0; i < texts.length; i++) {
-                try {
-                    String textB = textsQueueB.take();
-                    for (int j = 0; j < textB.length(); j++) {
-                        if (textB.charAt(j) == 'b') {
-                            counterB++;
-                        }
-                    }
-                    if (counterB > counterMaxB) {
-                        // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-                        // textMaxB = textB;
-                        counterMaxB = counterB;
-                    }
-                    counterB = 0;
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            System.out.println("Наибольшее количество букв b: " + counterMaxB);
-            // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-            // System.out.println("Слово: " + textMaxB);
-        });
+        Thread queueB = new Thread(() -> calc('b', textsQueueB));
         queueB.start();
 
-        Thread queueC = new Thread(() -> {
-            int counterC = 0;
-            int counterMaxC = 0;
-            // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-            // String textMaxC = null;
-
-            for (int i = 0; i < texts.length; i++) {
-                try {
-                    String textC = textsQueueC.take();
-                    for (int j = 0; j < textC.length(); j++) {
-                        if (textC.charAt(j) == 'c') {
-                            counterC++;
-                        }
-                    }
-                    if (counterC > counterMaxC) {
-                        // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-                        // textMaxC = textC;
-                        counterMaxC = counterC;
-                    }
-                    counterC = 0;
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            System.out.println("Наибольшее количество букв c: " + counterMaxC);
-            // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
-            // System.out.println("Слово: " + textMaxC);
-        });
+        Thread queueC = new Thread(() -> calc('c', textsQueueC));
         queueC.start();
 
     }
@@ -126,5 +47,33 @@ public class Main {
             text.append(letters.charAt(random.nextInt(letters.length())));
         }
         return text.toString();
+    }
+
+    public static void calc(char letter, BlockingQueue<String> textsQueue) {
+        int counter = 0;
+        int counterMax = 0;
+        // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
+        // String textMax = null;
+
+        for (int i = 0; i < wordsAmount; i++) {
+            try {
+                String word = textsQueue.take();
+                for (int j = 0; j < word.length(); j++) {
+                    if (word.charAt(j) == letter) {
+                        counter++;
+                    }
+                }
+                if (counter > counterMax) {
+                    // Можно активировать для вывода на печать слова с максимальным количеством проверяемых символов
+                    // textMax = textC;
+                    counterMax = counter;
+                }
+                counter = 0;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        // System.out.println("Наибольшее количество букв " + letter + " : " + counterMax + " Слово: " + textMax);
+        System.out.println("Наибольшее количество букв " + letter + " : " + counterMax);
     }
 }
